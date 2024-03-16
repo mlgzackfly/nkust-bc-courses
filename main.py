@@ -45,7 +45,7 @@ class CourseScraper:
             'cmp_area_id': 4,
             'dgr_id': 14,
             'unt_id': 'UV01',
-            'clyear': 2,
+            'clyear': '%',
             'reading': 'reading'
         }
         return payload
