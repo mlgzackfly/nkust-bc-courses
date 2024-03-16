@@ -1,6 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
+import seaborn as sns
 
+plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']
 class CourseScraper:
     def __init__(self, url, headers):
         self.url = url
@@ -20,15 +23,6 @@ class CourseScraper:
             data.append([col if col else " " for col in cols])
 
         return data
-
-    def print_course_details(self, course_data):
-        printed_courses = set()
-        for course in course_data[2:]:
-            course_name = course[6]
-            if course_name not in printed_courses:
-                selection_rate = self.calculate_selection_rate(course)
-                print(f"{course[11][0]} {course_name} {course[7]} {course[14]}/{course[15]} 選課率: {selection_rate}%")
-                printed_courses.add(course_name)
 
     def calculate_selection_rate(self, course):
         selected_students = int(course[14])
@@ -51,24 +45,42 @@ class CourseScraper:
         return payload
 
     def scrape_courses(self, start_year, end_year):
+        all_course_data = []
         for year in range(start_year, end_year):
-            for semester in range(1,3):
+            for semester in range(1, 3):
                 payload = self.generate_payload(year, semester)
                 course_data = self.fetch_course_data(payload)
-                print(f"{year} 學年度 第 {semester} 學期：")
-                self.print_course_details(course_data)
-                print()
+                all_course_data.extend(course_data[2:])
+        return all_course_data
 
     def close_session(self):
         self.session.close()
+
+def plot_course_selection(course_data):
+    course_names = [course[7] for course in course_data]
+    selected_students = [int(course[14]) for course in course_data]
+    max_capacity = [int(course[15]) for course in course_data]
+
+    plt.figure(figsize=(12, 6))
+    sns.barplot(x=course_names, y=selected_students, color='b', alpha=0.5, label='修課人數')
+    sns.barplot(x=course_names, y=max_capacity, color='r', alpha=0.5, label='人數上限')
+    plt.xlabel('課程名稱')
+    plt.ylabel('學生人數')
+    plt.title('選課資訊')
+    plt.xticks(rotation=90)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 def main():
     URL = 'http://webap.nkust.edu.tw/nkust/ag_pro/ag202.jsp'
     HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     course_scraper = CourseScraper(URL, HEADERS)
-    course_scraper.scrape_courses(108, 113)
+    course_data = course_scraper.scrape_courses(108, 112)
     course_scraper.close_session()
+
+    plot_course_selection(course_data)
 
 if __name__ == "__main__":
     main()
