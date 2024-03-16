@@ -20,7 +20,7 @@ class CourseScraper:
         rows = table.find_all('tr')
 
         data = []
-        for row in rows[2:]:  # 從第三行開始抓取，以跳過標題和表頭
+        for row in rows:
             cols = [ele.text.strip() for ele in row.find_all('td')]
             data.append([col if col else " " for col in cols])
 
@@ -41,7 +41,7 @@ class CourseScraper:
             'cmp_area_id': 4,
             'dgr_id': 14,
             'unt_id': 'UV01',
-            'clyear': 2,
+            'clyear': '%',
             'reading': 'reading'
         }
         return payload
@@ -58,8 +58,8 @@ class CourseScraper:
     def close_session(self):
         self.session.close()
 
-def plot_course_selection(course_data, course_type):
-    course_names = [course[7] for course in course_data if course[11][0] == course_type]
+def plot_course_selection(course_data, course_type, year, semester):
+    course_names = [f"{course[7]} {course[11][0]}" for course in course_data if course[11][0] == course_type]
     selected_students = [int(course[14]) for course in course_data if course[11][0] == course_type]
     max_capacity = [int(course[15]) for course in course_data if course[11][0] == course_type]
 
@@ -68,7 +68,7 @@ def plot_course_selection(course_data, course_type):
     sns.barplot(x=course_names, y=max_capacity, color='r', alpha=0.5, label='人數上限')
     plt.xlabel('課程名稱')
     plt.ylabel('學生人數')
-    plt.title(f'{course_type}修 課程選課情況')
+    plt.title(f'{year}學年第{semester}學期{course_type}修課 課程選課情況')
     plt.xticks(rotation=90)
     plt.legend()
     plt.tight_layout()
@@ -79,11 +79,13 @@ def main():
     HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     course_scraper = CourseScraper(URL, HEADERS)
-    course_data = course_scraper.scrape_courses(108, 113)
+    course_data = course_scraper.scrape_courses(108, 112)
     course_scraper.close_session()
 
-    plot_course_selection(course_data, '必')
-    plot_course_selection(course_data, '選')
+    for year in range(108, 113):
+        for semester in range(1, 3):
+            plot_course_selection(course_data, '必', year, semester)
+            plot_course_selection(course_data, '選', year, semester)
 
 if __name__ == "__main__":
     main()
