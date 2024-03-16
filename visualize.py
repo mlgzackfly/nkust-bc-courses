@@ -1,3 +1,4 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ import seaborn as sns
 
 # 設置中文字體
 plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']  # 請根據您的系統安裝的中文字體進行修改
+
 
 class CourseScraper:
     def __init__(self, url, headers):
@@ -58,6 +60,7 @@ class CourseScraper:
     def close_session(self):
         self.session.close()
 
+
 def plot_course_selection(course_data, course_type, year, semester):
     course_names = [f"{course[7]} {course[11][0]}" for course in course_data if course[11][0] == course_type]
     selected_students = [int(course[14]) for course in course_data if course[11][0] == course_type]
@@ -72,7 +75,18 @@ def plot_course_selection(course_data, course_type, year, semester):
     plt.xticks(rotation=90)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+
+    # 檢查資料夾是否存在，若不存在則建立
+    folder_path = 'image'
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # 儲存圖片，檔名格式為{學年度}{學期}_{課程類型}.png
+    file_name = f'{year}{semester}_{course_type}.png'
+    file_path = os.path.join(folder_path, file_name)
+    plt.savefig(file_path)
+    plt.close()
+
 
 def main():
     URL = 'http://webap.nkust.edu.tw/nkust/ag_pro/ag202.jsp'
@@ -86,6 +100,7 @@ def main():
         for semester in range(1, 3):
             plot_course_selection(course_data, '必', year, semester)
             plot_course_selection(course_data, '選', year, semester)
+
 
 if __name__ == "__main__":
     main()
