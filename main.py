@@ -22,10 +22,13 @@ class CourseScraper:
         return data
 
     def print_course_details(self, course_data):
+        printed_courses = set()
         for course in course_data[2:]:
-            selection_rate = self.calculate_selection_rate(course)
-            print(f"{course[11][0]} {course[6]} {course[7]} {course[14]}/{course[15]} 選課率: {selection_rate}%")
-
+            course_name = course[6]
+            if course_name not in printed_courses:
+                selection_rate = self.calculate_selection_rate(course)
+                print(f"{course[11][0]} {course_name} {course[7]} {course[14]}/{course[15]} 選課率: {selection_rate}%")
+                printed_courses.add(course_name)
 
     def calculate_selection_rate(self, course):
         selected_students = int(course[14])
