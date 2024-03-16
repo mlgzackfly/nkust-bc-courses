@@ -48,23 +48,22 @@ class CourseScraper:
         }
         return payload
 
-    def scrape_courses(self, start_year, end_year):
-        all_course_data = []
-        for year in range(start_year, end_year + 1):
-            for semester in range(1, 3):
-                payload = self.generate_payload(year, semester)
-                course_data = self.fetch_course_data(payload)
-                all_course_data.extend(course_data[2:])
-        return all_course_data
+    def scrape_courses(self, year, semester):
+        payload = self.generate_payload(year, semester)
+        course_data = self.fetch_course_data(payload)
+        return course_data[2:]
 
     def close_session(self):
         self.session.close()
 
 
 def plot_course_selection(course_data, course_type, year, semester):
-    course_names = [f"{course[7]} {course[11][0]}" for course in course_data if course[11][0] == course_type]
-    selected_students = [int(course[14]) for course in course_data if course[11][0] == course_type]
-    max_capacity = [int(course[15]) for course in course_data if course[11][0] == course_type]
+    course_names = [f"{course[7]}" for course in course_data if
+                    course[11][0] == course_type]
+    selected_students = [int(course[14]) for course in course_data if
+                         course[11][0] == course_type]
+    max_capacity = [int(course[15]) for course in course_data if
+                    course[11][0] == course_type]
 
     plt.figure(figsize=(12, 6))
     sns.barplot(x=course_names, y=selected_students, color='b', alpha=0.5, label='選課人數')
@@ -93,13 +92,12 @@ def main():
     HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     course_scraper = CourseScraper(URL, HEADERS)
-    course_data = course_scraper.scrape_courses(108, 112)
-    course_scraper.close_session()
-
     for year in range(108, 113):
         for semester in range(1, 3):
+            course_data = course_scraper.scrape_courses(year, semester)
             plot_course_selection(course_data, '必', year, semester)
             plot_course_selection(course_data, '選', year, semester)
+    course_scraper.close_session()
 
 
 if __name__ == "__main__":
